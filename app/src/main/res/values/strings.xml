@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Barbera</string>
+    <string name="phone_no">Phone</string>
+    <string name="password">Password</string>
+    <string name="username">Username</string>
+    <string name="login">Login</string>
+    <string name="request_accepted">Your client has accepted the request</string>
+    <string name="ok">ok</string>
+    <string name="please_wait">please wait</string>
+    <string name="networkErr">Please check you internet connection !</string>
+    <string name="order_fail">You can not assign a new oreder right now !</string>
+    <string name="plz_insert_balance">Please insert a balance time !</string>
+    <string name="invalid_phone">Invalid phone number !</string>
+    <string name="logout_notify">Confirm logout ?</string>
+    <string name="cancel">cancel</string>
+</resources>
