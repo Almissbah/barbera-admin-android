@@ -1,11 +1,10 @@
 package com.almissbha.barbera.data.remote;
 
 import android.app.ProgressDialog;
-import android.view.View;
 
 import com.almissbha.barbera.R;
+import com.almissbha.barbera.model.Order;
 import com.almissbha.barbera.ui.MainActivity;
-import com.almissbha.barbera.model.User;
 import com.almissbha.barbera.utils.MyUtilities;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,23 +22,26 @@ import org.json.JSONObject;
  */
 
 public class VollyAddOrder {
+
+    public interface CallBack{
+        void onSuccess(Order order);
+        void onFail(String string);
+    }
     MainActivity mCtx;
-    String costumerPhone,balanceTime;
     ProgressDialog progress;
-    User user;
-    public VollyAddOrder(MainActivity mCtx, String...data) {
-        costumerPhone= data[0];
-        balanceTime= data[1];
+    CallBack callBack;
+    
+    public VollyAddOrder(MainActivity mCtx, AddOrderRequest addOrderRequest, CallBack callBack) {
+        this.callBack=callBack;
         this.mCtx=mCtx;
-        user =mCtx.user;
         progress= new ProgressDialog(mCtx);
         progress.setMessage(mCtx.getString(R.string.please_wait));
         progress.setCancelable(false);
         progress.show();
 
-        String query="?user_id=2&admin_id="+ user.getId()+
-                "&customer_phone="+ MyUtilities.getEncodedString(costumerPhone)+
-                "&balance_time="+ MyUtilities.getEncodedString(balanceTime) ;
+        String query="?user_id=2&admin_id="+ addOrderRequest.getUser().getId()+
+                "&customer_phone="+ MyUtilities.getEncodedString(addOrderRequest.getCostumerPhone())+
+                "&balance_time="+ MyUtilities.getEncodedString(addOrderRequest.getBalanceTime()) ;
         HttpRequest(ServerAPIs.getAdd_order_url()+query);
 
     }
@@ -56,32 +58,29 @@ public class VollyAddOrder {
                         JSONObject json= null;
                         try {
                             json = new JSONObject(response);
+                            Order order=new Order();
                         if( json.getString("success").equals("1")){
 
-                            mCtx.order.setUserId(json.getInt("user_id"));
-                            mCtx.order.setCostumerPhone(json.getString("customer_phone"));
-                            mCtx.order.setAdminId(json.getInt("admin_id"));
-                            mCtx.order.setBalanceTime(json.getInt("balance_time"));
-                            mCtx.order.setRequested(true);
-                            new MyGsonManager(mCtx).saveOrderObjectClass( mCtx.order);
-                            mCtx.btnCall.setBackgroundResource(R.drawable.rounded_button_red);
-                            mCtx.pb_waiting.setVisibility(View.VISIBLE);
-                            mCtx.edtCostumerPhone.setText("");
-                            mCtx.edtBalanceTime.setText("");
-                            mCtx.tvInfo.setText("Waiting for acceptance !");
+                            order.setUserId(json.getInt("user_id"));
+                            order.setCostumerPhone(json.getString("customer_phone"));
+                            order.setAdminId(json.getInt("admin_id"));
+                            order.setBalanceTime(json.getInt("balance_time"));
+                            order.setRequested(true);
+                            callBack.onSuccess(order);
+
                         }else
                         {
-                            MyUtilities.showErrorDialog(mCtx,json.getString("message"));
+                            callBack.onFail(json.getString("message"));
                         }
                         } catch (JSONException e) {
-                            e.printStackTrace();
+                            callBack.onFail(mCtx.getString(R.string.networkErr));
                         }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 progress.dismiss();
-                MyUtilities.showCustomToast(mCtx,mCtx.getString(R.string.networkErr));
+                callBack.onFail(mCtx.getString(R.string.networkErr)); 
 
             }
         });

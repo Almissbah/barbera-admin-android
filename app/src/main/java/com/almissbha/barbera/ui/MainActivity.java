@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.almissbha.barbera.R;
 import com.almissbha.barbera.data.local.SharedPrefManager;
+import com.almissbha.barbera.data.remote.AddOrderRequest;
 import com.almissbha.barbera.firebase.MyFirebaseMessagingService;
 import com.almissbha.barbera.data.remote.VollyAddOrder;
 import com.almissbha.barbera.model.Order;
@@ -94,7 +95,27 @@ public class MainActivity extends BaseActivity {
                     String balanceTime = edtBalanceTime.getText().toString();
 
                     if(validateInput( costumerPhone, balanceTime)){
-                        new VollyAddOrder(mCtx, costumerPhone, balanceTime);}
+                        AddOrderRequest addOrderRequest =new AddOrderRequest();
+                        addOrderRequest.setBalanceTime(costumerPhone);
+                        addOrderRequest.setCostumerPhone(balanceTime);
+                        addOrderRequest.setUser(user);
+                        new VollyAddOrder(mCtx, addOrderRequest, new VollyAddOrder.CallBack() {
+                            @Override
+                            public void onSuccess(Order order) {
+                                mSharedPrefManager.saveOrder( order);
+
+                                mCtx.btnCall.setBackgroundResource(R.drawable.rounded_button_red);
+                                mCtx.pb_waiting.setVisibility(View.VISIBLE);
+                                mCtx.edtCostumerPhone.setText("");
+                                mCtx.edtBalanceTime.setText("");
+                                mCtx.tvInfo.setText("Waiting for acceptance !");
+                            }
+
+                            @Override
+                            public void onFail(String msg) {
+                                MyUtilities.showErrorDialog(mCtx,msg);
+                            }
+                        });}
                 } else {
                     MyUtilities.showCustomToast(mCtx, getString(R.string.order_fail));
 
