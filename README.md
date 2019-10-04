@@ -3,28 +3,28 @@ This is a demo Application for testing google FCM.
 
 ## ScreenShots:
 
-<img src="Health_1.jpg" width="300">  <img src="Health_2.jpg" width="300">  <img src="Health_3.jpg" width="300"> 
-<img src="Health_4.jpg" width="300"> 
+<img src="barbera_1.jpg" width="300">  <img src="barbera_2.jpg" width="300">  <img src="barbera_3.jpg" width="300"> 
 
 ------
 
 ## App Features
-1. User can add account.
-2. User can recives notifications in the right time for vaccinations.
-3. User can know the perfect weigt of his child at his child age.
+1. Admin can send notification to client.
+2. admin can recives notifications from client.
 
 
 ### App Packages:
-* **api**  contains the api classes to make api calls to server using Retrofit.
+* **data**  contains classes to make api calls to server using Volley and store data in sharedprefrences.
 * **model** - contains model classes.
-* **ui** - contains classes needed to display Activity and Fragment. 
+* **ui** - contains classes needed to display Activities. 
+* **firebase** - contains firebase classes. 
+* **utils** - contains utils for notifications and log. 
 
 
 ### App Specs
 * Minimum SDK 16
 * Java8 (in master branch) 
 * Android SharedPrefrences for storing user info.
-* Retrofit 2 for API integration.
+* Volley for API integration.
 * Gson for serialisation.
 ------
 ## App links
