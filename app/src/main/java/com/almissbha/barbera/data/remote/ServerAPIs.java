@@ -1,4 +1,4 @@
-package com.almissbha.barbera.internet;
+package com.almissbha.barbera.data.remote;
 
 /**
  * Created by mohamed on 7/7/2017.

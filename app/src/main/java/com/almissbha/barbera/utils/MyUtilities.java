@@ -37,8 +37,6 @@ public class MyUtilities {
 
     public MyUtilities(Activity mCtx) {
         this.activity = mCtx;
-        // Locale.setDefault(locale);
-
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -54,9 +52,8 @@ public class MyUtilities {
         try {
             return URLEncoder.encode(a, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            return a;
         }
-        return a;
     }
 
     public static void showCustomToast(Context context, String message) {

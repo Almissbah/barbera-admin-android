@@ -7,12 +7,12 @@ import java.io.Serializable;
  */
 
 public class Order implements Serializable {
-    int id=0;
-    int adminId=0;
-    int userId=0;
-    String costumerPhone="";
-    int balanceTime=0;
-    boolean isRequested=false;
+    private int id=0;
+    private int adminId=0;
+    private int userId=0;
+    private String costumerPhone="";
+    private int balanceTime=0;
+    private boolean isRequested=false;
 
     public boolean isRequested() {
         return isRequested;

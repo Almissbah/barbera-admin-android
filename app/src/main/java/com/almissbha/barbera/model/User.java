@@ -7,11 +7,11 @@ import java.io.Serializable;
  */
 
 public class User implements Serializable{
-    int id=0;
-    String userName="";
-    String deviceName="";
-    String token;
-    boolean isLogged=false;
+    private int id=0;
+    private String userName="";
+    private String deviceName="";
+    private String token;
+    private boolean isLogged=false;
 
     public int getId() {
         return id;

@@ -5,11 +5,11 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 
 import com.almissbha.barbera.R;
-import com.almissbha.barbera.activities.MainActivity;
+import com.almissbha.barbera.data.local.SharedPrefManager;
+import com.almissbha.barbera.ui.MainActivity;
 import com.almissbha.barbera.model.Order;
-import com.almissbha.barbera.utils.MyGsonManager;
 import com.almissbha.barbera.utils.Log;
-import com.almissbha.barbera.utils.MyNotificationManager;
+import com.almissbha.barbera.utils.AppNotificationManager;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -17,7 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by Belal on 03/11/16.
+ * Created by Mohammed
  */
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -27,12 +27,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMsgService";
     public static final String BarberaBroadCast = "com.almissbah.barbera.newbroadcast";
     Intent bi = new Intent(BarberaBroadCast);
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
-        mCtx=this;
-     //   Log.e(TAG, "new message :" + remoteMessage.getData().toString());
+        mCtx = this;
         if (remoteMessage.getData().size() > 0) {
             Log.e(TAG, "Data Payload: " + remoteMessage.getData().toString());
             try {
@@ -59,33 +59,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             String title = data.getString("title");
             String action = data.getString("action");
             String content = data.getString("content");
-            MyNotificationManager mNotificationManager = new MyNotificationManager(getApplicationContext());
-//            RideStatusObject status=rideInfo.getRide_Status();
+            AppNotificationManager mNotificationManager = new AppNotificationManager(getApplicationContext());
             JSONObject cont_obj;
-            Intent intent=new Intent(this, MainActivity.class);
+            Intent intent = new Intent(this, MainActivity.class);
             cont_obj = new JSONObject(content);
             switch (action) {
                 case "order_accepted":
-                        Order order =new Order();
-                        //parsing json data
-                        order.setId(cont_obj.getInt("order_id"));
-                        order.setAdminId(cont_obj.getInt("admin_id"));
-                        order.setUserId(cont_obj.getInt("user_id"));
+                    Order order = new Order();
+                    //parsing json data
+                    order.setId(cont_obj.getInt("order_id"));
+                    order.setAdminId(cont_obj.getInt("admin_id"));
+                    order.setUserId(cont_obj.getInt("user_id"));
 
-                        intent.putExtra("action", "order_accepted");
-                        intent.putExtra("order", order);
-                        mNotificationManager.showSmallNotification(getString(R.string.app_name), getString(R.string.request_accepted), intent);
+                    intent.putExtra("action", "order_accepted");
+                    intent.putExtra("order", order);
+                    mNotificationManager.showSmallNotification(getString(R.string.app_name), getString(R.string.request_accepted), intent);
 
                     bi.putExtra("action", "order_accepted");
-                    bi.putExtra("driverInfoObject", order);
+                    bi.putExtra("order", order);
                     sendBroadcast(bi);
-                        new MyGsonManager(mCtx).saveOrderObjectClass(order);
+                    SharedPrefManager.getInstance(mCtx).saveOrder(order);
 
                     break;
-                case "notify":
-                {   intent.putExtra("action", "notify");
+                case "notify": {
+                    intent.putExtra("action", "notify");
                     mNotificationManager.showSmallNotification(getString(R.string.app_name), cont_obj.getString("notify_data"), intent);
-                 }
+                }
                 break;
 
             }

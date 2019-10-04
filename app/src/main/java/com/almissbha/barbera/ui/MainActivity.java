@@ -1,4 +1,4 @@
-package com.almissbha.barbera.activities;
+package com.almissbha.barbera.ui;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,80 +18,101 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.almissbha.barbera.R;
+import com.almissbha.barbera.data.local.SharedPrefManager;
 import com.almissbha.barbera.firebase.MyFirebaseMessagingService;
-import com.almissbha.barbera.internet.VollyAddOrder;
+import com.almissbha.barbera.data.remote.VollyAddOrder;
 import com.almissbha.barbera.model.Order;
 import com.almissbha.barbera.model.User;
 import com.almissbha.barbera.utils.Log;
-import com.almissbha.barbera.utils.MyGsonManager;
 import com.almissbha.barbera.utils.MyUtilities;
 
 public class MainActivity extends BaseActivity {
-    public Button btn_call;
-    public EditText edt_costumer_phone, edt_balance_time;
-    public User user;
-    public Order order;
+    private Button btnCall;
+    private EditText edtCostumerPhone, edtBalanceTime;
+    private User user;
+    private Order order;
     private MainActivity mCtx;
-    public TextView tv_info,tv_device_name;
-    LinearLayout lin_main;
-    String TAG="MainActivity";
-public ProgressBar pb_waiting;
+    private TextView tvInfo, tvDeviceName;
+    private LinearLayout mainLinearLayout;
+    private String TAG=MainActivity.class.getName();
+    private ProgressBar pb_waiting;
+    SharedPrefManager mSharedPrefManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mCtx = MainActivity.this;
+        mSharedPrefManager=SharedPrefManager.getInstance(mCtx);
 
 
-        pb_waiting= (ProgressBar) findViewById(R.id.pb_waiting);
-        btn_call = (Button) findViewById(R.id.btn_call);
-        edt_costumer_phone = (EditText) findViewById(R.id.edt_costumer_phone);
-        edt_balance_time = (EditText) findViewById(R.id.edt_balance_time);
-        tv_info = (TextView) findViewById(R.id.tv_info);
-        tv_device_name= (TextView) findViewById(R.id.tv_device_name);
-        lin_main = (LinearLayout) findViewById(R.id.lin_main);
+        getIntentData();
+        initUI();
+
+        registerReceiver(br, new IntentFilter(MyFirebaseMessagingService.BarberaBroadCast));
+    }
+    void getIntentData(){
+
         if (getIntent().hasExtra("user")) {
             user = (User) getIntent().getSerializableExtra("user");
         } else {
-            user = new MyGsonManager(mCtx).getUserObjectClass();
+            user = mSharedPrefManager.getUser();
         }
         if (getIntent().hasExtra("order")) {
             order = (Order) getIntent().getSerializableExtra("order");
         } else {
-            order = new MyGsonManager(mCtx).getOrderObjectClass();
+            order = mSharedPrefManager.getOrder();
         }
-        tv_device_name.setText(user.getDeviceName());
+
+    }
+    void initUI(){
+        pb_waiting= (ProgressBar) findViewById(R.id.pb_waiting);
+        btnCall = (Button) findViewById(R.id.btn_call);
+        edtCostumerPhone = (EditText) findViewById(R.id.edt_costumer_phone);
+        edtBalanceTime = (EditText) findViewById(R.id.edt_balance_time);
+        tvInfo = (TextView) findViewById(R.id.tv_info);
+        tvDeviceName = (TextView) findViewById(R.id.tv_device_name);
+        mainLinearLayout = (LinearLayout) findViewById(R.id.lin_main);
+
+        tvDeviceName.setText(user.getDeviceName());
+
         if (order.isRequested()) {
-            mCtx.btn_call.setBackgroundResource(R.drawable.rounded_button_red);
-            lin_main.setEnabled(false);
-            mCtx.tv_info.setText("Waiting for acceptance !");
+            mCtx.btnCall.setBackgroundResource(R.drawable.rounded_button_red);
+            mainLinearLayout.setEnabled(false);
+            mCtx.tvInfo.setText("Waiting for acceptance !");
             pb_waiting.setVisibility(View.VISIBLE);
         } else {
-            mCtx.btn_call.setBackgroundResource(R.drawable.rounded_button_green);
-            lin_main.setEnabled(true);
+            mCtx.btnCall.setBackgroundResource(R.drawable.rounded_button_green);
+            mainLinearLayout.setEnabled(true);
             pb_waiting.setVisibility(View.GONE);
         }
-        btn_call.setOnClickListener(new View.OnClickListener() {
+        btnCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!order.isRequested()) {
-                    String costumerPhone = edt_costumer_phone.getText().toString();
-                    String balanceTime = edt_balance_time.getText().toString();
-                    if(balanceTime.equals("")){MyUtilities.showCustomToast(mCtx, getString(R.string.plz_insert_balance));}
-                    else if(edt_costumer_phone.equals("")){
-                        MyUtilities.showCustomToast(mCtx, getString(R.string.invalid_phone));}
-                    else{new VollyAddOrder(mCtx, costumerPhone, balanceTime);}
+
+                    String costumerPhone = edtCostumerPhone.getText().toString();
+                    String balanceTime = edtBalanceTime.getText().toString();
+
+                    if(validateInput( costumerPhone, balanceTime)){
+                        new VollyAddOrder(mCtx, costumerPhone, balanceTime);}
                 } else {
                     MyUtilities.showCustomToast(mCtx, getString(R.string.order_fail));
 
                 }
             }
         });
-
-        registerReceiver(br, new IntentFilter(MyFirebaseMessagingService.BarberaBroadCast));
     }
 
 
+    boolean validateInput(String costumerPhone,String balanceTime){
+        if(balanceTime.equals("")){
+            MyUtilities.showCustomToast(mCtx, getString(R.string.plz_insert_balance));
+            return false;}
+        else if(edtCostumerPhone.equals("")){
+            MyUtilities.showCustomToast(mCtx, getString(R.string.invalid_phone));
+            return false;}
+        else return true;
+    }
     @Override
     protected void onDestroy() {
         unregisterReceiver(br);
@@ -118,10 +139,8 @@ public ProgressBar pb_waiting;
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 // Whatever...
-                                new MyGsonManager(mCtx).clear();
-                                Intent i = new Intent(mCtx, LoginActivity.class);
-                                startActivity(i);
-                                mCtx.finish();
+                                mSharedPrefManager.clear();
+                                startLoginActivity();
                             }
                         }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
@@ -137,7 +156,11 @@ public ProgressBar pb_waiting;
         }
         return true;
     }
-
+    void startLoginActivity(){
+        Intent i = new Intent(mCtx, LoginActivity.class);
+        startActivity(i);
+        mCtx.finish();
+    }
 
     private BroadcastReceiver br = new BroadcastReceiver() {
         @Override
@@ -153,9 +176,9 @@ public ProgressBar pb_waiting;
                 Log.i(TAG,action);
                 switch (action){
                     case "order_accepted":
-                        mCtx.btn_call.setBackgroundResource(R.drawable.rounded_button_green);
+                        mCtx.btnCall.setBackgroundResource(R.drawable.rounded_button_green);
                         pb_waiting.setVisibility(View.GONE);
-                        tv_info.setText("--");
+                        tvInfo.setText("--");
                         order =new Order();
                         break;
 

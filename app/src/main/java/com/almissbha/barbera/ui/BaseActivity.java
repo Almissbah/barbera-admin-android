@@ -1,4 +1,4 @@
-package com.almissbha.barbera.activities;
+package com.almissbha.barbera.ui;
 
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;

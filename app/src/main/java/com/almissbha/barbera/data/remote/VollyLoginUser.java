@@ -1,13 +1,14 @@
-package com.almissbha.barbera.internet;
+package com.almissbha.barbera.data.remote;
 
 import android.app.ProgressDialog;
-import android.view.View;
+import android.content.Intent;
 
 import com.almissbha.barbera.R;
-import com.almissbha.barbera.activities.MainActivity;
+import com.almissbha.barbera.ui.LoginActivity;
+import com.almissbha.barbera.ui.MainActivity;
 import com.almissbha.barbera.model.User;
-import com.almissbha.barbera.utils.MyGsonManager;
 import com.almissbha.barbera.utils.MyUtilities;
+import com.almissbha.barbera.data.local.SharedPrefManager;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -23,25 +24,26 @@ import org.json.JSONObject;
  * Created by mohamed on 12/4/2017.
  */
 
-public class VollyAddOrder {
-    MainActivity mCtx;
-    String costumerPhone,balanceTime;
+public class VollyLoginUser {
+    LoginActivity mCtx;
+    String username,password,token;
     ProgressDialog progress;
-    User user;
-    public VollyAddOrder(MainActivity mCtx, String...data) {
-        costumerPhone= data[0];
-        balanceTime= data[1];
+    public VollyLoginUser(LoginActivity mCtx, String...data) {
+        username= data[0];
+        password= data[1];
         this.mCtx=mCtx;
-        user =mCtx.user;
+
         progress= new ProgressDialog(mCtx);
         progress.setMessage(mCtx.getString(R.string.please_wait));
         progress.setCancelable(false);
         progress.show();
 
-        String query="?user_id=2&admin_id="+ user.getId()+
-                "&customer_phone="+ MyUtilities.getEncodedString(costumerPhone)+
-                "&balance_time="+ MyUtilities.getEncodedString(balanceTime) ;
-        HttpRequest(ServerAPIs.getAdd_order_url()+query);
+        token= SharedPrefManager.getInstance(mCtx).getDeviceToken();
+        if(token==null){token="no token";}
+        String query="?username="+ MyUtilities.getEncodedString(username)+
+                "&password="+ MyUtilities.getEncodedString(password)+
+                "&token="+ MyUtilities.getEncodedString(token) ;
+        HttpRequest(ServerAPIs.getLogin_url()+query);
 
     }
 
@@ -58,18 +60,17 @@ public class VollyAddOrder {
                         try {
                             json = new JSONObject(response);
                         if( json.getString("success").equals("1")){
-
-                            mCtx.order.setUserId(json.getInt("user_id"));
-                            mCtx.order.setCostumerPhone(json.getString("customer_phone"));
-                            mCtx.order.setAdminId(json.getInt("admin_id"));
-                            mCtx.order.setBalanceTime(json.getInt("balance_time"));
-                            mCtx.order.setRequested(true);
-                            new MyGsonManager(mCtx).saveOrderObjectClass( mCtx.order);
-                            mCtx.btn_call.setBackgroundResource(R.drawable.rounded_button_red);
-                            mCtx.pb_waiting.setVisibility(View.VISIBLE);
-                            mCtx.edt_costumer_phone.setText("");
-                            mCtx.edt_balance_time.setText("");
-                            mCtx.tv_info.setText("Waiting for acceptance !");
+                            User user =new User();
+                            user.setId(json.getInt("user_id"));
+                            user.setLogged(true);
+                            user.setDeviceName(json.getString("device_name"));
+                            user.setUserName(json.getString("user_name"));
+                            user.setToken(token);
+                            Intent i=new Intent(mCtx, MainActivity.class);
+                            new MyGsonManager(mCtx).saveUserObjectClass(user);
+                            i.putExtra("user", user);
+                            mCtx.startActivity(i);
+                            mCtx.finish();
                         }else
                         {
                             MyUtilities.showErrorDialog(mCtx,json.getString("message"));
@@ -83,6 +84,9 @@ public class VollyAddOrder {
             public void onErrorResponse(VolleyError error) {
                 progress.dismiss();
                 MyUtilities.showCustomToast(mCtx,mCtx.getString(R.string.networkErr));
+                Intent i=new Intent(mCtx, MainActivity.class);
+                mCtx.startActivity(i);
+                mCtx.finish();
 
             }
         });
