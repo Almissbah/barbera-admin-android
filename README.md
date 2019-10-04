@@ -1,4 +1,4 @@
-# Pediatric Health
+# Barbera Admin
 This is a demo Application for testing google FCM.
 
 ## ScreenShots:
@@ -29,4 +29,4 @@ This is a demo Application for testing google FCM.
 ------
 ## App links
 
-* [App Server repository](https://github.com/Almissbah/pediatric-health-php)
+* [Barbera Client](https://github.com/Almissbah/barbera-client-android)
