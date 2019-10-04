@@ -9,7 +9,7 @@ This is a demo Application for testing google FCM.
 
 ## App Features
 1. Admin can send notification to client.
-2. admin can recives notifications from client.
+2. Admin can recives notifications from client.
 
 
 ### App Packages:
